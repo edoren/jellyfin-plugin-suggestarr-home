@@ -1,0 +1,83 @@
+name: "Release"
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{steps.version.outputs.version}}
+    steps:
+      - name: Set version
+        id: version
+        run: |
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          [ "$VERSION" == "main" ] && VERSION=latest
+          echo "Version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  build:
+    needs: init
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pre Build | Checkout
+        uses: actions/checkout@v4
+      
+      - name: Pre Build | Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+          
+      - name: Pre Build | Restore dependencies
+        run: dotnet restore src
+        
+      - name: Build
+        run: dotnet build src --no-restore --configuration Release
+  
+      - name: Post Build | Prepare artifacts [zip]
+        working-directory: src/Jellyfin.Plugin.SuggestArrHome/bin/Release/net9.0
+        run: |
+          7z a * SuggestArrHome_${needs.init.outputs.version}
+
+      - name: Post Build | Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: upload/${{ matrix.name }}
+          if-no-files-found: error
+  
+  release:
+    needs:
+      - init
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup | Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Setup | Checksums
+        run: |
+          for file in SuggestArrHome_*; do
+            sha256sum "$file" > "${file}.sha256"
+          done
+
+      - name: Build | Publish
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: SuggestArrHome_*
