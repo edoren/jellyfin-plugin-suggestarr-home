@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Template</title>
+</head>
+<body>
+    <div id="SuggestArrHomeConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="SuggestArrHomeConfigForm">
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="DbType">Database Type</label>
+                        <select is="emby-select" id="DbType" name="DbType" class="emby-select-withcolor emby-select">
+                            <option id="DbTypePostgreSQL" value="PostgreSQL">PostgreSQL</option>
+                            <!--<option id="DbTypeMySQL" value="MySQL">MySQL/MariaDB</option>-->
+                        </select>
+                        <div class="fieldDescription">Select the database type that stores the SuggestArr requests</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DbHost">Database Host</label>
+                        <input id="DbHost" name="DbHost" type="text" is="emby-input" />
+                        <div class="fieldDescription">Enter the database host address</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DbPort">Database Port</label>
+                        <input id="DbPort" name="DbPort" type="number" is="emby-input" min="0" />
+                        <div class="fieldDescription">Enter the port number for the database. Default for PostgreSQL is 5432, MySQL/MariaDB is 3306.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DbUser">Database User</label>
+                        <input id="DbUser" name="DbUser" type="text" is="emby-input" />
+                        <div class="fieldDescription">Enter the username used to connect to your database.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DbPassword">Database Password</label>
+                        <input id="DbPassword" name="DbPassword" type="password" is="emby-input" />
+                        <div class="fieldDescription">Enter the password for your database user.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DbName">Database Name</label>
+                        <input id="DbName" name="DbName" type="text" is="emby-input" />
+                        <div class="fieldDescription">Enter the username used to connect to your database.</div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var TemplateConfig = {
+                pluginUniqueId: '1fb74668-826a-4e24-ad7f-e9d8a20d3193'
+            };
+
+            document.querySelector('#SuggestArrHomeConfigPage')
+                .addEventListener('pageshow', function () {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                        document.querySelector('#DbType').value = config.DbType;
+                        document.querySelector('#DbHost').value = config.DbHost;
+                        document.querySelector('#DbPort').value = config.DbPort;
+                        document.querySelector('#DbUser').value = config.DbUser;
+                        document.querySelector('#DbPassword').value = config.DbPassword;
+                        document.querySelector('#DbName').value = config.DbName;
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+            document.querySelector('#SuggestArrHomeConfigForm')
+                .addEventListener('submit', function (e) {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                        config.DbType = document.querySelector('#DbType').value;
+                        config.DbHost = document.querySelector('#DbHost').value;
+                        config.DbPort = document.querySelector('#DbPort').value;
+                        config.DbUser = document.querySelector('#DbUser').value;
+                        config.DbPassword = document.querySelector('#DbPassword').value;
+                        config.DbName = document.querySelector('#DbName').value;
+                        ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        });
+                    });
+
+                    e.preventDefault();
+                    return false;
+                });
+        </script>
+    </div>
+</body>
+</html>
