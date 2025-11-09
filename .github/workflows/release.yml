@@ -44,7 +44,7 @@ jobs:
       - name: Post Build | Prepare artifacts [zip]
         working-directory: src/Jellyfin.Plugin.SuggestArrHome/bin/Release/net9.0
         run: |
-          7z a * SuggestArrHome_${needs.init.outputs.version}
+          7z a * SuggestArrHome_${{needs.init.outputs.version}}
 
       - name: Post Build | Upload artifacts
         uses: actions/upload-artifact@v4
