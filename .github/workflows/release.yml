@@ -49,8 +49,8 @@ jobs:
       - name: Post Build | Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.name }}
-          path: upload/${{ matrix.name }}
+          name: SuggestArrHome_${{needs.init.outputs.version}}.zip
+          path: src/Jellyfin.Plugin.SuggestArrHome/bin/Release/net9.0/SuggestArrHome_${{needs.init.outputs.version}}.zip
           if-no-files-found: error
   
   release:
